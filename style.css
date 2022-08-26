@@ -3,44 +3,52 @@
     margin: 0;
     padding: 0;
 }
-body {
-    padding: 0;
-    box-sizing: border-box;
+
+div.carousel {
+    position: relative;
+    display: flex;
+    width: 100vw;
+    height: 600px;
+    justify-content: right;
+    overflow: hidden;
+    align-items: center;
+
+    background: #000000;
+}
+div.visual-layer {
+    position: absolute;
+    width: 40%;
+    height: inherit;
+    left: 0;
+    background: inherit;
+    z-index: 1;
+}
+
+div.slider-data {
+    position: relative;
+    width: 40%;
+    height: 70%;
+    padding: 0 5%;
+    background: linear-gradient(to right, black 80%, #090909cc);
+    z-index: 1;
+
 }
 
 div.container {
-    position: absolute;
+    position: relative;
     display: inline-flex;
-
-    width: inherit;
-    height: inherit;
+    width: 50vw;
+    height: 600px;
     align-items: center;
     transition: 0.5s;
 
+    user-select: none;
 }
 
 div.dragging.container {
     transition: 0s;
 }
 
-
-div.carousel {
-    position: relative;
-    display: inline-flex;
-    width: 900px;
-    height: 600px;
-
-    overflow: hidden;
-    align-items: center;
-
-
-    background: yellow;
-}
-div.slider-text {
-    width: 346px;
-    height: inherit;
-    background: orange;
-}
 div.carousel-item {
     position: absolute;
     background: blue;
@@ -54,15 +62,112 @@ div.carousel-item {
     will-change: transform, left;
 }
 
-button.rightButton {
+button.carousel-control-button {
     position: absolute;
-    right: 0;
+    width: 18.62px;
+    height: 40px;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    cursor: pointer;
+
     z-index: 2;
+}
+
+button.rightButton {
+    right: 2%;
+    background-image: url("assets/right-arrow.png");
 }
 
 button.leftButton {
-    position: absolute;
-    left: 0;
-    z-index: 2;
+    left: 2%;
+    background-image: url("assets/left-arrow.png");
 }
 
+div.pagination {
+    position: absolute;
+    display: flex;
+    height: 3px;
+    bottom: 10%;
+    left: calc(50% - 100px);
+    align-items: center;
+    background: #242424;
+    border-radius: 8px;
+
+    z-index: 2;
+    cursor: pointer;
+    transition: 0.2s;
+
+}
+div.pagination:hover {
+    height: 5px;
+}
+
+span.pagination-indicator{
+    position: absolute;
+    display: block;
+    height: 100%;
+    left: 75%;
+    margin: auto 0;
+    transition: 0.5s;
+
+    background: #28E8ED;
+    border-radius: inherit;
+}
+
+
+/*-----------------*/
+div.slider-data div.product-name {
+    font-style: normal;
+    font-weight: 900;
+    font-size: 44px;
+    line-height: 60px;
+    text-align: center;
+    letter-spacing: 0.06em;
+    color: #C6C6C6;
+    margin: 0 0 12px;
+}
+
+div.slider-data div.product-type {
+    font-style: normal;
+    font-weight: 300;
+    font-size: 19px;
+    line-height: 26px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #C6C6C6;
+    margin: 0 0 28px;
+}
+
+div.slider-data div.product-desc {
+    font-style: normal;
+    font-weight: 200;
+    font-size: 14px;
+    line-height: 19px;
+    text-align: justify;
+    letter-spacing: -0.005em;
+    color: #C6C6C6;
+    margin: 0 0 108px;
+}
+
+div.slider-data button.product-button {
+    width: 100%;
+    height: 55px;
+    background: #0D0D0D;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 25px;
+    text-align: center;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #C6C6C6;
+    border: none;
+    cursor: pointer;
+}
