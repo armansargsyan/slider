@@ -29,7 +29,7 @@ div.slider-data {
     width: 40%;
     height: 70%;
     padding: 0 5%;
-    background: linear-gradient(to right, black 80%, #090909cc);
+    background: linear-gradient(to right, black 80%, #000000ad);
     z-index: 1;
 
 }
@@ -60,6 +60,7 @@ div.carousel-item {
     transform-origin: left;
     opacity: 1;
     will-change: transform, left;
+    cursor: pointer;
 }
 
 button.carousel-control-button {

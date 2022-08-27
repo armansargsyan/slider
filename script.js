@@ -25,8 +25,9 @@ class DraggingEvent {
                 window.removeEventListener("mouseup", clearDraggingEvent);
 
                 document.removeEventListener("mouseleave", clearDraggingEvent);
-
-                handler(null)
+                if (this.dragStarted) {
+                    handler(null)
+                }
             };
 
             window.addEventListener("mousemove", moveHandler);
@@ -53,8 +54,9 @@ class DraggingEvent {
 
                 window.removeEventListener("touchmove", moveHandler);
                 window.removeEventListener("touchend", clearDraggingEvent);
-
-                handler(null)
+                if (this.dragStarted) {
+                    handler(null)
+                }
             };
 
             window.addEventListener("touchmove", moveHandler);
@@ -115,6 +117,7 @@ class CarouselSetting {
     defClass;
     showedSlidesCount;
     paginationSize;
+    dragSensitivity;
 
     constructor(
         {
@@ -122,7 +125,8 @@ class CarouselSetting {
             cardMargin,
             defClass,
             showedSlidesCount,
-            paginationSize
+            paginationSize,
+            dragSensitivity
         }
     ) {
         this.dataSource = dataSource;
@@ -130,6 +134,7 @@ class CarouselSetting {
         this.defClass = defClass;
         this.showedSlidesCount = showedSlidesCount;
         this.paginationSize = paginationSize;
+        this.dragSensitivity = dragSensitivity;
     }
 
     getTemplate() {
@@ -157,9 +162,10 @@ class Carousel extends DraggingEvent {
         if (changedPosition) {
             const deltaX = changedPosition.x / this.cardSize;
             this.render(deltaX);
+            this.lastDragDirection = deltaX;
         } else {
             this.calcActiveIndex();
-            this.render()
+            this.render();
         }
     };
 
@@ -247,7 +253,7 @@ class Carousel extends DraggingEvent {
         }
         card.style.left = `${newPosition}px`;
         card.style.transform = `scale(${newScale})`;
-        card.setAttribute('data-scale', newScale);
+        card.setAttribute('data-position', newPosition);
         if (isTransitionOff) {
         }
     }
@@ -280,32 +286,56 @@ class Carousel extends DraggingEvent {
 
     slideStep(step) {
         let newActiveIndex = this.activeIndex + step;
-        const count = Math.floor(newActiveIndex / this.cards.length);
-        if (Math.abs(count) >= 1) {
-            newActiveIndex = newActiveIndex - count * this.cards.length;
+        if (newActiveIndex === -1) {
+            this.container.classList.add('dragging');
+            this.renderItem(this.cards[this.cards.length - 1], newActiveIndex);
         }
-        if (newActiveIndex !== this.activeIndex) {
-            this.updateActive(newActiveIndex);
-            this.render()
-        }
+        setTimeout(() => {
+            this.container.classList.remove('dragging');
+            const count = Math.floor(newActiveIndex / this.cards.length);
+            if (Math.abs(count) >= 1) {
+                newActiveIndex = newActiveIndex - count * this.cards.length;
+            }
+            if (newActiveIndex !== this.activeIndex) {
+                this.updateActive(newActiveIndex);
+                this.render()
+            }
+        })
     }
 
     calcActiveIndex() {
-        let minDeltaScale = Infinity;
+        let minDeltaPosition = Infinity;
         let minIndex = null;
         this.cards.forEach((card, index) => {
-            const deltaScale = Math.abs(1 - card.dataset.scale);
-            if (deltaScale < minDeltaScale) {
-                minDeltaScale = deltaScale;
+            const deltaPosition = Math.abs(+card.dataset.position);
+            if (deltaPosition < minDeltaPosition) {
+                minDeltaPosition = deltaPosition;
                 minIndex = index;
             }
         });
         if (minIndex !== null) {
+            if (this.lastDragDirection > 0) {
+                minIndex--;
+                if (minIndex < 0) {
+                    minIndex = this.cards.length + minIndex;
+                }
+            } else if (minDeltaPosition / this.cardSize > this.settings.dragSensitivity) {
+                minIndex++;
+                const count = Math.floor(minIndex / this.cards.length);
+                if (Math.abs(count) >= 1) {
+                    minIndex = minIndex - count * this.cards.length;
+                }
+
+            }
             this.updateActive(minIndex);
         }
-    }
+
+        }
     paginationClick(e) {
-        const index = Math.floor(e.offsetX / this.settings.paginationSize);
+        let index = Math.floor(e.offsetX / this.settings.paginationSize);
+        if (index === this.cards.length) {
+            index--;
+        }
         if (index !== this.activeIndex) {
             this.setToActive(index);
         }
@@ -348,7 +378,8 @@ const carouselSetting = new CarouselSetting({
     cardMargin: 40,
     defClass: 'carousel-item',
     showedSlidesCount: 3,
-    paginationSize: 50
+    paginationSize: 50,
+    dragSensitivity: 0.2
 });
 const carouselElements = {
     container: document.querySelector('.container'),
