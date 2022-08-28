@@ -119,6 +119,8 @@ class CarouselSetting {
     paginationSize;
     dragSensitivity;
     paginationCount;
+    showedData;
+    transitionHideSensitivity;
 
     constructor(
         {
@@ -127,7 +129,8 @@ class CarouselSetting {
             defClass,
             showedSlidesCount,
             paginationSize,
-            dragSensitivity
+            dragSensitivity,
+            transitionHideSensitivity
         }
     ) {
         this.dataSource = dataSource;
@@ -136,13 +139,14 @@ class CarouselSetting {
         this.showedSlidesCount = showedSlidesCount;
         this.paginationSize = paginationSize;
         this.dragSensitivity = dragSensitivity;
+        this.transitionHideSensitivity = transitionHideSensitivity;
     }
 
     getTemplate() {
         let template = '';
         this.paginationCount = this.dataSource.length;
-        this.dataSource = this.setMinNeededItems(this.dataSource);
-        this.dataSource.forEach((item, index) => {
+        this.showedData = this.setMinNeededItems(this.dataSource);
+        this.showedData.forEach((item, index) => {
             template += `<div class="carousel-item ${this.defClass}" style="background-image: url('${item.image}')"></div>`
         });
         return template;
@@ -156,7 +160,7 @@ class CarouselSetting {
         if (num > 2) {
             sumNum = Math.floor(num) + 1;
         }
-        for (let i = 0 ; i < num; i++) {
+        for (let i = 0 ; i < sumNum; i++) {
             resultArray = [...resultArray, ...data];
         }
         return resultArray;
@@ -169,7 +173,7 @@ class Carousel extends DraggingEvent {
         super(elements.container);
         this.container = elements.container;
         this.settings = settings;
-
+        this.elements = elements;
         this.init(elements);
 
 
@@ -186,7 +190,14 @@ class Carousel extends DraggingEvent {
         }
     };
 
-    init(elements) {
+    init(elements = this.elements) {
+        if (window.innerWidth < 500) {
+            this.settings.showedSlidesCount = 1;
+            this.settings.cardMargin = 50;
+            this.settings.transitionHideSensitivity = 0.2;
+        } else if (window.innerWidth < 900) {
+            this.settings.showedSlidesCount = 2;
+        }
         this.container.innerHTML = this.settings.getTemplate();
         this.calcCardsWith();
         this.getCards();
@@ -208,14 +219,14 @@ class Carousel extends DraggingEvent {
             setTimeout(() => {
                 e.target.disabled = false;
             }, 300);
-            this.slideStep(-1);
+            this.slideStep(1);
         };
         elements.rightButton.onclick = (e) => {
             e.target.disabled = true;
             setTimeout(() => {
                 e.target.disabled = false;
             }, 500);
-            this.slideStep(1)
+            this.slideStep(-1)
         };
         elements.pagination.style.width = `${this.settings.paginationCount * this.settings.paginationSize}px`;
         elements.pagination.onclick = (e) => this.paginationClick(e);
@@ -227,11 +238,8 @@ class Carousel extends DraggingEvent {
         this.sliderDataControls = elements.sliderDataControls;
     }
 
-    updateCardWidth = () => {
-        this.calcCardsWith();
-        this.setCardsDefaultSettings();
-        this.firstRender();
-
+    updateCardWidth = (e) => {
+        this.init()
     };
 
     firstRender() {
@@ -275,7 +283,7 @@ class Carousel extends DraggingEvent {
         }
             const newScale = this.calcScale(deltaI),
                 newPosition = this.calcPosition(deltaI);
-        if (Math.abs(card.dataset.position - newPosition) / 2 > +this.container.offsetWidth) {
+        if (Math.abs(card.dataset.position - newPosition) * this.settings.transitionHideSensitivity > +this.container.offsetWidth) {
             card.style.transition = '0s';
         }
         card.style.left = `${newPosition}px`;
@@ -291,7 +299,7 @@ class Carousel extends DraggingEvent {
     }
 
     calcScale(i) {
-        if (i <= 0) return 1;
+        if (i <= 0 || this.settings.showedSlidesCount === 1) return 1;
         return 1 / (2 ** i);
     }
 
@@ -389,7 +397,7 @@ class Carousel extends DraggingEvent {
 
     updateActive(index) {
         this.activeIndex = index;
-        this.updateSlideData(this.settings.dataSource[this.activeIndex]);
+        this.updateSlideData(this.settings.showedData[this.activeIndex]);
     }
 
     renderPagination(step = this.activeIndex) {
@@ -437,7 +445,8 @@ const carouselSetting = new CarouselSetting({
     defClass: 'carousel-item',
     showedSlidesCount: 3,
     paginationSize: 50,
-    dragSensitivity: 0.3
+    dragSensitivity: 0.3,
+    transitionHideSensitivity: 0.5
 });
 const carouselElements = {
     container: document.querySelector('.container'),

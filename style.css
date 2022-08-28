@@ -182,3 +182,37 @@ div.slider-data button.slider-details-button {
     border: none;
     cursor: pointer;
 }
+
+@media(max-width: 500px) {
+    div.visual-layer-1, .visual-layer-2 {
+        display: none;
+    }
+    div.carousel{
+        flex-direction: column-reverse;
+        padding: 0;
+    }
+    div.container {
+        width: 80vw;
+    }
+
+    div.pagination {
+        display: none;
+    }
+    div.slider-data {
+        width: 100vw;
+    }
+    div.slider-data > div.slider-desc {
+        display: none;
+    }
+    div.slider-name {
+        font-size: 20px;
+        text-align: center;
+    }
+    div.slider-type {
+        text-align: center;
+    }
+
+    button.leftButton, button.rightButton {
+        top: 150px;
+    }
+}
