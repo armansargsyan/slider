@@ -12,15 +12,23 @@ div.carousel {
     justify-content: right;
     overflow: hidden;
     align-items: center;
-
+    padding-right: 4%;
     background: #000000;
 }
-div.visual-layer {
+div.visual-layer-1 {
     position: absolute;
-    width: 40%;
+    width: 30%;
     height: inherit;
     left: 0;
     background: inherit;
+    z-index: 1;
+}
+div.visual-layer-2 {
+    position: absolute;
+    width: 4%;
+    height: inherit;
+    right: 0;
+    background: linear-gradient(to right, #000000ad 50%, #000000);
     z-index: 1;
 }
 
@@ -29,7 +37,7 @@ div.slider-data {
     width: 40%;
     height: 70%;
     padding: 0 5%;
-    background: linear-gradient(to right, black 80%, #000000ad);
+    background: linear-gradient(to right, #000000 80%, #000000ad);
     z-index: 1;
 
 }
@@ -51,11 +59,13 @@ div.dragging.container {
 
 div.carousel-item {
     position: absolute;
-    background: blue;
     border-radius: 50%;
     text-align: center;
     left: 0;
     font-size: 100px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
     transition: inherit;
     transform-origin: left;
     opacity: 1;
@@ -119,7 +129,7 @@ span.pagination-indicator{
 
 
 /*-----------------*/
-div.slider-data div.product-name {
+div.slider-data div.slider-name {
     font-style: normal;
     font-weight: 900;
     font-size: 44px;
@@ -130,7 +140,7 @@ div.slider-data div.product-name {
     margin: 0 0 12px;
 }
 
-div.slider-data div.product-type {
+div.slider-data div.slider-type {
     font-style: normal;
     font-weight: 300;
     font-size: 19px;
@@ -141,7 +151,7 @@ div.slider-data div.product-type {
     margin: 0 0 28px;
 }
 
-div.slider-data div.product-desc {
+div.slider-data div.slider-desc {
     font-style: normal;
     font-weight: 200;
     font-size: 14px;
@@ -152,7 +162,7 @@ div.slider-data div.product-desc {
     margin: 0 0 108px;
 }
 
-div.slider-data button.product-button {
+div.slider-data button.slider-details-button {
     width: 100%;
     height: 55px;
     background: #0D0D0D;

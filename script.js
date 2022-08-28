@@ -118,6 +118,7 @@ class CarouselSetting {
     showedSlidesCount;
     paginationSize;
     dragSensitivity;
+    paginationCount;
 
     constructor(
         {
@@ -139,10 +140,26 @@ class CarouselSetting {
 
     getTemplate() {
         let template = '';
+        this.paginationCount = this.dataSource.length;
+        this.dataSource = this.setMinNeededItems(this.dataSource);
         this.dataSource.forEach((item, index) => {
-            template += `<div class="carousel-item ${this.defClass}">${item.text}</div>`
+            template += `<div class="carousel-item ${this.defClass}" style="background-image: url('${item.image}')"></div>`
         });
         return template;
+    }
+
+    setMinNeededItems(data) {
+        const minCount = this.showedSlidesCount + 2 * (this.showedSlidesCount - 1);
+        const num = minCount / data.length;
+        let sumNum = 2;
+        let resultArray = [];
+        if (num > 2) {
+            sumNum = Math.floor(num) + 1;
+        }
+        for (let i = 0 ; i < num; i++) {
+            resultArray = [...resultArray, ...data];
+        }
+        return resultArray;
     }
 }
 
@@ -171,28 +188,43 @@ class Carousel extends DraggingEvent {
 
     init(elements) {
         this.container.innerHTML = this.settings.getTemplate();
-        this.activeIndex = 0;
         this.calcCardsWith();
         this.getCards();
         this.setCardsDefaultSettings();
         this.setCardsClickHandler();
         this.initControls(elements);
+        this.updateActive(0);
+
         this.firstRender();
         this.getDistance(this.drag);
         window.addEventListener("resize", this.updateCardWidth)
 
     }
 
+
     initControls(elements) {
-        elements.leftButton.onclick = () => this.slideStep(-1);
-        elements.rightButton.onclick = () => this.slideStep(1);
-        elements.pagination.style.width = `${this.cards.length * this.settings.paginationSize}px`;
+        elements.leftButton.onclick = (e) => {
+            e.target.disabled = true;
+            setTimeout(() => {
+                e.target.disabled = false;
+            }, 300);
+            this.slideStep(-1);
+        };
+        elements.rightButton.onclick = (e) => {
+            e.target.disabled = true;
+            setTimeout(() => {
+                e.target.disabled = false;
+            }, 500);
+            this.slideStep(1)
+        };
+        elements.pagination.style.width = `${this.settings.paginationCount * this.settings.paginationSize}px`;
         elements.pagination.onclick = (e) => this.paginationClick(e);
         this.paginationIndicator = elements.pagination.querySelector('span');
         this.paginationIndicator.onclick = (e) => {
             e.stopPropagation();
         };
         this.paginationIndicator.style.width = `${this.settings.paginationSize}px`;
+        this.sliderDataControls = elements.sliderDataControls;
     }
 
     updateCardWidth = () => {
@@ -235,27 +267,23 @@ class Carousel extends DraggingEvent {
     }
 
     renderItem(card, deltaI) {
-        let isTransitionOff = false;
 
-        if (deltaI < this.settings.showedSlidesCount - this.cards.length) {
+        if (deltaI < (this.settings.showedSlidesCount + 1) - this.cards.length) {
             deltaI = deltaI + this.cards.length;
-            isTransitionOff = true;
-        } else if (deltaI > this.cards.length - 1) {
-
+        } else if (deltaI > this.cards.length - this.settings.showedSlidesCount) {
             deltaI = deltaI - this.cards.length;
-            isTransitionOff = true;
         }
-        const newScale = this.calcScale(deltaI),
-            newPosition = this.calcPosition(deltaI);
-        // card.style.zIndex = `${zIndex}`;
-        if (isTransitionOff) {
-            // card.style.transitionDelay = '0s';
+            const newScale = this.calcScale(deltaI),
+                newPosition = this.calcPosition(deltaI);
+        if (Math.abs(card.dataset.position - newPosition) / 2 > +this.container.offsetWidth) {
+            card.style.transition = '0s';
         }
         card.style.left = `${newPosition}px`;
-        card.style.transform = `scale(${newScale})`;
-        card.setAttribute('data-position', newPosition);
-        if (isTransitionOff) {
-        }
+            card.style.transform = `scale(${newScale})`;
+            card.setAttribute('data-position', newPosition);
+            setTimeout(() => {
+                card.style.transition = 'inherit';
+            });
     }
 
     calcPosition(i) {
@@ -286,12 +314,7 @@ class Carousel extends DraggingEvent {
 
     slideStep(step) {
         let newActiveIndex = this.activeIndex + step;
-        if (newActiveIndex === -1) {
-            this.container.classList.add('dragging');
-            this.renderItem(this.cards[this.cards.length - 1], newActiveIndex);
-        }
-        setTimeout(() => {
-            this.container.classList.remove('dragging');
+
             const count = Math.floor(newActiveIndex / this.cards.length);
             if (Math.abs(count) >= 1) {
                 newActiveIndex = newActiveIndex - count * this.cards.length;
@@ -300,7 +323,6 @@ class Carousel extends DraggingEvent {
                 this.updateActive(newActiveIndex);
                 this.render()
             }
-        })
     }
 
     calcActiveIndex() {
@@ -333,6 +355,7 @@ class Carousel extends DraggingEvent {
         }
     paginationClick(e) {
         let index = Math.floor(e.offsetX / this.settings.paginationSize);
+        index = this.calcNearIndex(index);
         if (index === this.cards.length) {
             index--;
         }
@@ -341,50 +364,92 @@ class Carousel extends DraggingEvent {
         }
     }
 
+    calcNearIndex(index) {
+        const firstIndex = this.calcRealIndex(index),
+            secondIndex = firstIndex + this.settings.paginationCount, thirdIndex = firstIndex - this.settings.paginationCount;
+        let firstDist = Math.abs(this.activeIndex - firstIndex);
+        let secondDist = Math.abs(secondIndex - this.activeIndex);
+        let thirdDist = Math.abs(this.activeIndex - thirdIndex);
+        let result = secondDist <= firstDist ?
+            (secondDist <= thirdDist ? secondIndex : thirdIndex)
+            : (firstDist <= thirdDist ? firstIndex : thirdIndex);
+        if (result >= this.cards.length) {
+            result = result - Math.floor(result / this.cards.length) * this.cards.length;
+        } else if (result < 0) {
+            result = this.cards.length + result;
+        }
+        return result;
+
+    }
+
+    calcRealIndex(index) {
+        const count = Math.floor(this.activeIndex / this.settings.paginationCount);
+        return index + count * this.settings.paginationCount;
+    }
+
     updateActive(index) {
         this.activeIndex = index;
+        this.updateSlideData(this.settings.dataSource[this.activeIndex]);
     }
 
     renderPagination(step = this.activeIndex) {
+        if (step > (this.settings.paginationCount - 1)) {
+            step = step - Math.floor((step / this.settings.paginationCount)) * this.settings.paginationCount;
+        }
         let position = step * this.settings.paginationSize;
         this.paginationIndicator.style.left = `${position}px`
     }
 
+    updateSlideData(card) {
+        this.sliderDataControls.name.innerHTML = card.name;
+        this.sliderDataControls.type.innerHTML = card.type;
+        this.sliderDataControls.desc.innerHTML = card.description;
+    }
 }
 const carouselSetting = new CarouselSetting({
     dataSource: [
         {
-            text: 1
+            name: 'Name 1',
+            type: 'Type 1',
+            description: 'description 1',
+            image: './assets/hit_apelsin.png'
         },
         {
-            text: 2
+            name: 'Name 2',
+            type: 'Type 2',
+            description: 'description 2',
+            image: './assets/hit_blackberry.png'
         },
         {
-            text: 3
+            name: 'Name 3',
+            type: 'Type 3',
+            description: 'description 3',
+            image: './assets/hit_bluberry.png'
         },
         {
-            text: 4
+            name: 'LEMONGRASS',
+            type: 'ALL WHITE PORTION',
+            description: 'White Fox Peppered Mint is a white, tobacco-free product with a very fresh peppermint flavoring, topped of by a hint of black pepper oil – spicy! topped of by a hint of black pepper oil – spicy! topped of by a hint of black pepper oil – spicy! topped of by a hint of',
+            image: './assets/hit_lemongrass.png'
         },
-        // {
-        //     text: 5
-        // },
-        // {
-        //     text: 6
-        // },
-        // {
-        //     text: 7
-        // }
     ],
     cardMargin: 40,
     defClass: 'carousel-item',
     showedSlidesCount: 3,
     paginationSize: 50,
-    dragSensitivity: 0.2
+    dragSensitivity: 0.3
 });
 const carouselElements = {
     container: document.querySelector('.container'),
     pagination: document.querySelector('.pagination'),
     leftButton: document.querySelector('.leftButton'),
     rightButton: document.querySelector('.rightButton'),
+    sliderDataControls: {
+        parent: document.querySelector('.slider-data'),
+        name: document.querySelector('.slider-name'),
+        type: document.querySelector('.slider-type'),
+        desc: document.querySelector('.slider-desc'),
+
+    }
 };
 const carouselInstance = new Carousel(carouselElements, carouselSetting);
