@@ -191,12 +191,14 @@ class Carousel extends DraggingEvent {
     };
 
     init(elements = this.elements) {
-        if (window.innerWidth < 500) {
-            this.settings.showedSlidesCount = 1;
+        if (window.innerWidth < 1024) {
+            this.settings.showedSlidesCount = 3;
             this.settings.cardMargin = 50;
+            this.isMobile = true;
+            this.settings.dragSensitivity = 0.1;
             this.settings.transitionHideSensitivity = 0.2;
-        } else if (window.innerWidth < 900) {
-            this.settings.showedSlidesCount = 2;
+        } else {
+            this.isMobile = false;
         }
         this.container.innerHTML = this.settings.getTemplate();
         this.calcCardsWith();
@@ -251,7 +253,11 @@ class Carousel extends DraggingEvent {
 
     calcCardsWith() {
         const slidesCount = this.settings.showedSlidesCount;
-        this.cardSize = (this.container.offsetWidth - (slidesCount - 1) * this.settings.cardMargin) * 2 ** (slidesCount - 1) / (2 ** slidesCount - 1);
+        if (this.isMobile) {
+            this.cardSize = (this.container.offsetWidth - 2 * this.settings.cardMargin) * 2 / 3;
+        } else {
+            this.cardSize = (this.container.offsetWidth - (slidesCount - 1) * this.settings.cardMargin) * 2 ** (slidesCount - 1) / (2 ** slidesCount - 1);
+        }
         if (this.cardSize > this.container.offsetHeight) {
             this.cardSize = this.container.offsetHeight;
         }
@@ -295,11 +301,17 @@ class Carousel extends DraggingEvent {
     }
 
     calcPosition(i) {
+        if (this.isMobile) {
+            return (1 + i) * this.container.offsetWidth / 2 - this.cardSize / 2 ** (Math.abs(i) + 1);
+        }
         return (2 ** i - 1) / (2 ** (i - 1)) * this.cardSize + i * this.settings.cardMargin;
     }
 
     calcScale(i) {
-        if (i <= 0 || this.settings.showedSlidesCount === 1) return 1;
+        if (this.isMobile) {
+            return 1 / (2 ** Math.abs(i));
+        }
+        if (i <= 0) return 1;
         return 1 / (2 ** i);
     }
 

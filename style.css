@@ -183,27 +183,30 @@ div.slider-data button.slider-details-button {
     cursor: pointer;
 }
 
-@media(max-width: 500px) {
+@media(max-width: 1024px) {
     div.visual-layer-1, .visual-layer-2 {
         display: none;
     }
     div.carousel{
         flex-direction: column-reverse;
         padding: 0;
+        height: 1000px;
     }
     div.container {
         width: 80vw;
     }
 
     div.pagination {
-        display: none;
+        bottom: 48%;
     }
     div.slider-data {
         width: 100vw;
+        height: 60%;
+        padding-top: 10%;
     }
-    div.slider-data > div.slider-desc {
-        display: none;
-    }
+    /*div.slider-data > div.slider-desc {*/
+    /*    display: none;*/
+    /*}*/
     div.slider-name {
         font-size: 20px;
         text-align: center;
@@ -213,6 +216,6 @@ div.slider-data button.slider-details-button {
     }
 
     button.leftButton, button.rightButton {
-        top: 150px;
+        top: 230px;
     }
 }
