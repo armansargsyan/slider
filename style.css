@@ -194,10 +194,13 @@ div.slider-data button.slider-details-button {
     }
     div.container {
         width: 100vw;
+        height: 1000px;
+
     }
 
     div.pagination {
-        bottom: 48%;
+        bottom: 35%;
+        height: 5px;
     }
     div.slider-data {
         width: 100vw;
