@@ -190,7 +190,7 @@ div.slider-data button.slider-details-button {
     div.carousel{
         flex-direction: column-reverse;
         padding: 0;
-        height: 1000px;
+        height: 1200px;
     }
     div.container {
         width: 100vw;
@@ -199,7 +199,7 @@ div.slider-data button.slider-details-button {
     }
 
     div.pagination {
-        bottom: 35%;
+        bottom: 40%;
         height: 5px;
     }
     div.slider-data {
